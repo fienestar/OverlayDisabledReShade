@@ -4198,7 +4198,6 @@ void reshade::runtime::draw_technique_editor()
 		}
 	}
 
-	size_t force_reload_effect = std::numeric_limits<size_t>::max();
 	size_t hovered_technique_index = std::numeric_limits<size_t>::max();
 
 	for (size_t index = 0; index < _technique_sorting.size(); ++index)
@@ -4342,9 +4341,10 @@ void reshade::runtime::draw_technique_editor()
 					if (!effect.preprocessed)
 					{
 						// Force preprocessor to run to update included files
-						force_reload_effect = tech.effect_index;
+						load_effect(effect.source_file, ini_file::load_cache(_current_preset_path), tech.effect_index, 0, true, true);
 					}
-					else if (!effect.included_files.empty())
+
+					if (!effect.included_files.empty())
 					{
 						ImGui::Separator();
 
@@ -4474,15 +4474,6 @@ void reshade::runtime::draw_technique_editor()
 	else
 	{
 		_selected_technique = std::numeric_limits<size_t>::max();
-	}
-
-	if (force_reload_effect != std::numeric_limits<size_t>::max())
-	{
-		reload_effect(force_reload_effect);
-
-		// Reloading an effect file invalidates all textures, but the statistics window may already have drawn references to those, so need to reset it
-		if (ImGuiWindow *const statistics_window = ImGui::FindWindowByName("###statistics"))
-			statistics_window->DrawList->CmdBuffer.clear();
 	}
 }
 
